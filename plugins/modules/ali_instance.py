@@ -51,6 +51,10 @@ options:
         - The subnet ID in which to launch the instances (VPC).
       aliases: ['subnet_id']
       type: str
+    private_ip_address:
+      description:
+        - The value of private_ip_address depends on that of vswitch_id. private_ip_address cannot be separately specified. If both vswitch_id and private_ip_address are specified, the IP address specified by private_ip_address must be an idle IP address within the CIDR block of the specified vSwitch.
+      type: str
     instance_name:
       description:
         - The name of ECS instance, which is a string of 2 to 128 Chinese or English characters. It must begin with an
@@ -241,6 +245,7 @@ EXAMPLES = '''
     image: ubuntu1404_64_40G_cloudinit_20160727.raw
     instance_type: ecs.n4.small
     vswitch_id: vsw-abcd1234
+    private_ip_address: 10.153.22.23
     assign_public_ip: True
     max_bandwidth_out: 10
     host_name: myhost
@@ -264,6 +269,7 @@ EXAMPLES = '''
         system_disk_size: '{{ system_disk_size }}'
         instance_type: '{{ instance_type }}'
         vswitch_id: '{{ vswitch_id }}'
+        private_ip_address: '{{ private_ip_address }}'
         assign_public_ip: '{{ assign_public_ip }}'
         internet_charge_type: '{{ internet_charge_type }}'
         max_bandwidth_out: '{{ max_bandwidth_out }}'
@@ -628,6 +634,7 @@ def run_instance(module, ecs, exact_count):
     instance_type = module.params['instance_type']
     security_groups = module.params['security_groups']
     vswitch_id = module.params['vswitch_id']
+    private_ip_address = module.params['private_ip_address']
     instance_name = module.params['instance_name']
     description = module.params['description']
     internet_charge_type = module.params['internet_charge_type']
@@ -680,7 +687,7 @@ def run_instance(module, ecs, exact_count):
                                       internet_max_bandwidth_in=max_bandwidth_in, host_name=host_name, password=password,
                                       io_optimized='optimized', system_disk_category=system_disk_category,
                                       system_disk_size=system_disk_size, system_disk_disk_name=system_disk_name,
-                                      system_disk_description=system_disk_description, vswitch_id=vswitch_id,
+                                      system_disk_description=system_disk_description, vswitch_id=vswitch_id, private_ip_address=private_ip_address,
                                       amount=exact_count, instance_charge_type=instance_charge_type, period=period, period_unit="Month",
                                       auto_renew=auto_renew, auto_renew_period=auto_renew_period, key_pair_name=key_name,
                                       user_data=user_data, client_token=client_token, ram_role_name=ram_role_name,
@@ -761,6 +768,7 @@ def main():
         count=dict(type='int', default=1),
         count_tag=dict(type='str'),
         vswitch_id=dict(type='str', aliases=['subnet_id']),
+        private_ip_address=dict(type='str', aliases=['ip_address']),
         instance_name=dict(type='str', aliases=['name']),
         host_name=dict(type='str'),
         password=dict(type='str', no_log=True),
